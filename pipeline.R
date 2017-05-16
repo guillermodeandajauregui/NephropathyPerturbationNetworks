@@ -201,7 +201,7 @@ SCN_bootstraps = lapply(X = SCN_nws, FUN = function(g){
 })
 
 #save(glom_bootstraps, cortex_bootstraps, SCN_bootstraps, background_network_reactome, file = "...PIO/background_and_bootstraps.R")
-save.image("~/X/PIO/workspace_phase3.RData")
+#save.image("...PIO/workspace_phase3.RData")
 
 # comparative_degree_distribution_plot_points(nw = glom_nws$delta, bootstrap = glom_bootstraps$delta)
 # comparative_degree_distribution_plot_points(nw = Cortex_nws$delta, bootstrap = cortex_bootstraps$delta)
