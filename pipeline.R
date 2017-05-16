@@ -18,8 +18,9 @@
 #1) Pathway and crosstalk perturbation > ReGAGEX
 #2) Pw Pert NW analysis > NetworkAnalyzer Clone 
 #3) Null model generation
-#4) Gene-level crosstalk network > Fuzzy Matcher + Graphite + Igraph
-#5) Driver identification > DeMAND
+#4) Community evolution  > community evolution functions
+#5) Gene-level crosstalk network > Fuzzy Matcher + Graphite + Igraph
+#6) Driver identification > DeMAND
 
 #sources and libraries
 inputs = scan(file = "inputs.txt", what = "character")
@@ -213,3 +214,53 @@ SCN_bootstraps = lapply(X = SCN_nws, FUN = function(g){
 # plot_nicely(glom_analysis$alfa)
 # 
 # smallworld_test(g = glom_analysis$alfa$g, NullModelList = glom_bootstraps$alfa)
+
+###############################################################################
+#4) Community evolution  > community evolution functions
+###############################################################################
+
+#alfa to delta ... how connectivity changes from the disease state to the treated state
+#beta to delta ... differences in connectivity of alterations inside the disease state, against disease v non disease
+
+#alfa to delta ... how connectivity changes from the disease state to the treated state
+glom_EvoComm_alfa_delta = network_community_evolution_analysis(gi = glom_nws$alfa, 
+                                                               gj = glom_nws$delta, 
+                                                               k = 0.2, 
+                                                               grouping = "infomap")
+
+Cortex_EvoComm_alfa_delta = network_community_evolution_analysis(gi = Cortex_nws$alfa, 
+                                                               gj = Cortex_nws$delta, 
+                                                               k = 0.2, 
+                                                               grouping = "infomap")
+
+SCN_EvoComm_alfa_delta = network_community_evolution_analysis(gi = SCN_nws$alfa, 
+                                                               gj = SCN_nws$delta, 
+                                                               k = 0.2, 
+                                                               grouping = "infomap")
+
+
+#beta to delta ... differences in connectivity of alterations inside the disease state, against disease v non disease
+glom_EvoComm_beta_delta = network_community_evolution_analysis(gi = glom_nws$beta, 
+                                                               gj = glom_nws$delta, 
+                                                               k = 0.2, 
+                                                               grouping = "infomap")
+
+Cortex_EvoComm_beta_delta = network_community_evolution_analysis(gi = Cortex_nws$beta, 
+                                                                 gj = Cortex_nws$delta, 
+                                                                 k = 0.2, 
+                                                                 grouping = "infomap")
+
+SCN_EvoComm_beta_delta = network_community_evolution_analysis(gi = SCN_nws$beta, 
+                                                              gj = SCN_nws$delta, 
+                                                              k = 0.2, 
+                                                              grouping = "infomap")
+
+SCN_EvoComm_beta_delta$comms_gj
+
+# save(glom_EvoComm_alfa_delta, 
+#      glom_EvoComm_beta_delta, 
+#      Cortex_EvoComm_alfa_delta, 
+#      Cortex_EvoComm_beta_delta, 
+#      SCN_EvoComm_alfa_delta, 
+#      SCN_EvoComm_beta_delta, 
+#      file = "...PIO/EvoComms.RData")
