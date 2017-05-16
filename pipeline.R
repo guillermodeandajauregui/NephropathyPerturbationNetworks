@@ -17,8 +17,9 @@
 
 #1) Pathway and crosstalk perturbation > ReGAGEX
 #2) Pw Pert NW analysis > NetworkAnalyzer Clone 
-#3) Gene-level crosstalk network > Fuzzy Matcher + Graphite + Igraph
-#4) Driver identification > DeMAND
+#3) Null model generation
+#4) Gene-level crosstalk network > Fuzzy Matcher + Graphite + Igraph
+#5) Driver identification > DeMAND
 
 #sources and libraries
 inputs = scan(file = "inputs.txt", what = "character")
@@ -174,3 +175,41 @@ SCN_nws = lapply(SCN_analysis, function(x){
 
 #save(SCN_nws, Cortex_nws, glom_nws, file = "...PIO/regage_analyzed_nw_list.RData")
 #save.image("...PIO/workspace_phase2.RData")
+
+###############################################################################
+#3) Null model generation
+###############################################################################
+
+#background probability crosstalk network
+
+background_network_reactome = jaccard_matrix(reactome_pw, reactome_pw)
+background_network_reactome = graph_from_adjacency_matrix(background_network_reactome, weighted = TRUE, mode = "undirected")
+background_network_reactome = simplify(background_network_reactome, remove.multiple = TRUE, remove.loops = TRUE)
+background_network_reactome = NetworkAnalyzer(background_network_reactome)
+distribution_plot(background_network_reactome$g)
+
+glom_bootstraps = lapply(X = glom_nws, FUN = function(g){
+  bootstrap_model_4_function(g = g, background = background_network_reactome$g, n = 5000)
+})
+
+cortex_bootstraps = lapply(X = Cortex_nws, FUN = function(g){
+  bootstrap_model_4_function(g = g, background = background_network_reactome$g, n = 5000)
+})
+
+SCN_bootstraps = lapply(X = SCN_nws, FUN = function(g){
+  bootstrap_model_4_function(g = g, background = background_network_reactome$g, n = 5000)
+})
+
+#save(glom_bootstraps, cortex_bootstraps, SCN_bootstraps, background_network_reactome, file = "...PIO/background_and_bootstraps.R")
+save.image("~/X/PIO/workspace_phase3.RData")
+
+# comparative_degree_distribution_plot_points(nw = glom_nws$delta, bootstrap = glom_bootstraps$delta)
+# comparative_degree_distribution_plot_points(nw = Cortex_nws$delta, bootstrap = cortex_bootstraps$delta)
+# comparative_degree_distribution_plot_points(nw = SCN_nws$delta, bootstrap = SCN_bootstraps$delta)
+
+# for(i in 1:length(glom_bootstraps$alfa)){
+# plot_nicely(NetworkAnalyzer(glom_bootstraps$alfa[[i]], directed = FALSE, skip.betweenness = FALSE, workaround.betweenness = TRUE))
+# }
+# plot_nicely(glom_analysis$alfa)
+# 
+# smallworld_test(g = glom_analysis$alfa$g, NullModelList = glom_bootstraps$alfa)
