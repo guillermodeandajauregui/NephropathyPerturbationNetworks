@@ -130,8 +130,47 @@ SCN_regages = list(alfa = ReGAGE(expmatrix = matriz,
 )
 
 #save(SCN_regages, Cortex_regages, glom_regages, file = "...PIO/regages.RData")
+#save.image("...PIO/workspace_phase1.RData")
+
 
 ###############################################################################
 #2) Pw Pert NW analysis > NetworkAnalyzer Clone 
 ###############################################################################
 
+glom_analysis = lapply(glom_regages, FUN = function(x){
+   NetworkAnalyzer(x$g, 
+                   directed = FALSE, 
+                   skip.betweenness = FALSE, 
+                   workaround.betweenness = TRUE)
+ })
+
+Cortex_analysis = lapply(Cortex_regages, FUN = function(x){
+  NetworkAnalyzer(x$g, 
+                  directed = FALSE, 
+                  skip.betweenness = FALSE, 
+                  workaround.betweenness = TRUE)
+})
+
+SCN_analysis = lapply(SCN_regages, FUN = function(x){
+  NetworkAnalyzer(x$g, 
+                  directed = FALSE, 
+                  skip.betweenness = FALSE, 
+                  workaround.betweenness = TRUE)
+})
+
+#save(SCN_analysis, Cortex_analysis, glom_analysis, file = "...PIO/nw_analysis_regage.RData")
+
+glom_nws = lapply(glom_analysis, function(x){
+  x$g
+})
+
+Cortex_nws = lapply(Cortex_analysis, function(x){
+  x$g
+})
+
+SCN_nws = lapply(SCN_analysis, function(x){
+  x$g
+})
+
+#save(SCN_nws, Cortex_nws, glom_nws, file = "...PIO/regage_analyzed_nw_list.RData")
+#save.image("...PIO/workspace_phase2.RData")
