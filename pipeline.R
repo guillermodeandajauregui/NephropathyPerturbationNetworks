@@ -46,13 +46,92 @@ Cont_Cortex_num = which(colnames(matriz)%in%groups[Group == "Cont_Cortex"]$Sampl
 dbdb_Cortex_num = which(colnames(matriz)%in%groups[Group == "dbdb_Cortex"]$Sample)
 dbdb_Pio_Cortex_num = which(colnames(matriz)%in%groups[Group == "dbdb-Pio_Cortex"]$Sample)
 
+Cont_SCN_num = which(colnames(matriz)%in%groups[Group == "Cont_SCN"]$Sample)
+dbdb_SCN_num = which(colnames(matriz)%in%groups[Group == "dbdb_SCN"]$Sample)
+dbdb_Pio_SCN_num = which(colnames(matriz)%in%groups[Group == "dbdb-Pio_SCN"]$Sample)
+
 ##pathway annotation
-load(inputs[2])
+#load(inputs[2])
+reactome_pw = pathways(species = "mmusculus", "reactome")
+reactome_pw = convertIdentifiers(x = reactome_pw, to = "symbol")
+reactome_pw = lapply(reactome_pw, function(x) nodes(pathwayGraph(x)))
 
 
-a = ReGAGE(expmatrix = matriz, 
-           pathways = PWs[1:20], 
-           cases = dbdb_Glom_num, 
-           controls = Cont_Glom_num, 
-           qvalue = 0.1, 
-           setsize = 10)
+#copy matriz 
+#matriz_copia = matriz
+#rownames(matriz_copia) <- stringr::str_to_upper(rownames(matriz_copia))
+#a = gage(exprs = matriz, gsets = PWs[1:20], ref = Cont_Glom_num, samp = dbdb_Glom_num, set.size = 10, same.dir = TRUE, compare = "unpaired")
+#a = ReGAGE(expmatrix = matriz_copia, pathways = PWs, cases = dbdb_Glom_num, controls = Cont_Glom_num, qvalue = 0.1)
+# components(a$g)
+# b = ReGAGE(expmatrix = matriz, pathways = reactome_pw, cases = dbdb_SCN_num, controls = Cont_SCN_num, qvalue = 0.05)
+# plot(b$g)
+# components(b$g)
+# V(b$g)$name
+
+###############################################################################
+#1) Pathway and crosstalk perturbation > ReGAGEX
+###############################################################################
+
+#ReGAGE, qvalue 0.05
+
+
+#glom
+glom_regages = list(alfa = ReGAGE(expmatrix = matriz, 
+                                  pathways = reactome_pw, 
+                                  cases = dbdb_Glom_num, 
+                                  controls = Cont_Glom_num, 
+                                  qvalue = 0.05),
+                    beta = ReGAGE(expmatrix = matriz, 
+                                  pathways = reactome_pw, 
+                                  cases = dbdb_Pio_Glom_num, 
+                                  controls = dbdb_Glom_num, 
+                                  qvalue = 0.05),
+                    delta = ReGAGE(expmatrix = matriz, 
+                                  pathways = reactome_pw, 
+                                  cases = dbdb_Pio_Glom_num, 
+                                  controls = Cont_Glom_num, 
+                                  qvalue = 0.05)
+                    )
+
+#cortex
+Cortex_regages = list(alfa = ReGAGE(expmatrix = matriz, 
+                                  pathways = reactome_pw, 
+                                  cases = dbdb_Cortex_num, 
+                                  controls = Cont_Cortex_num, 
+                                  qvalue = 0.05),
+                    beta = ReGAGE(expmatrix = matriz, 
+                                  pathways = reactome_pw, 
+                                  cases = dbdb_Pio_Cortex_num, 
+                                  controls = dbdb_Cortex_num, 
+                                  qvalue = 0.05),
+                    delta = ReGAGE(expmatrix = matriz, 
+                                   pathways = reactome_pw, 
+                                   cases = dbdb_Pio_Cortex_num, 
+                                   controls = Cont_Cortex_num, 
+                                   qvalue = 0.05)
+)
+
+#SCN - new version
+SCN_regages = list(alfa = ReGAGE(expmatrix = matriz, 
+                                    pathways = reactome_pw, 
+                                    cases = dbdb_SCN_num, 
+                                    controls = Cont_SCN_num, 
+                                    qvalue = 0.05),
+                      beta = ReGAGE(expmatrix = matriz, 
+                                    pathways = reactome_pw, 
+                                    cases = dbdb_Pio_SCN_num, 
+                                    controls = dbdb_SCN_num, 
+                                    qvalue = 0.05),
+                      delta = ReGAGE(expmatrix = matriz, 
+                                     pathways = reactome_pw, 
+                                     cases = dbdb_Pio_SCN_num, 
+                                     controls = Cont_SCN_num, 
+                                     qvalue = 0.05)
+)
+
+#save(SCN_regages, Cortex_regages, glom_regages, file = "...PIO/regages.RData")
+
+###############################################################################
+#2) Pw Pert NW analysis > NetworkAnalyzer Clone 
+###############################################################################
+
