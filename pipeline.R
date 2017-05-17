@@ -204,6 +204,20 @@ SCN_bootstraps = lapply(X = SCN_nws, FUN = function(g){
 #save(glom_bootstraps, cortex_bootstraps, SCN_bootstraps, background_network_reactome, file = "...PIO/background_and_bootstraps.R")
 #save.image("...PIO/workspace_phase3.RData")
 
+#### bootstraps with a non-normalized version of the Jaccard probability; they don't diverge wildly so unnecessary
+# glom_bootstraps_nonnormalized = lapply(X = glom_nws, FUN = function(g){
+#   bootstrap_model_4_function(g = g, background = background_network_reactome$g, n = 5000)
+# })
+# 
+# cortex_bootstraps_nonnormalized = lapply(X = Cortex_nws, FUN = function(g){
+#   bootstrap_model_4_function(g = g, background = background_network_reactome$g, n = 5000)
+# })
+# 
+# SCN_bootstraps_nonnormalized = lapply(X = SCN_nws, FUN = function(g){
+#   bootstrap_model_4_function(g = g, background = background_network_reactome$g, n = 5000)
+# })
+
+
 # comparative_degree_distribution_plot_points(nw = glom_nws$delta, bootstrap = glom_bootstraps$delta)
 # comparative_degree_distribution_plot_points(nw = Cortex_nws$delta, bootstrap = cortex_bootstraps$delta)
 # comparative_degree_distribution_plot_points(nw = SCN_nws$delta, bootstrap = SCN_bootstraps$delta)
@@ -264,3 +278,29 @@ SCN_EvoComm_beta_delta$comms_gj
 #      SCN_EvoComm_alfa_delta, 
 #      SCN_EvoComm_beta_delta, 
 #      file = "...PIO/EvoComms.RData")
+
+
+###############################################################################
+#5) Gene-level crosstalk network > Fuzzy Matcher + Graphite + Igraph
+###############################################################################
+
+#for each tissue, for each comparison (9 networks total)
+
+reactome_graphs = pathways(species = "mmusculus", "reactome")
+reactome_graphs = convertIdentifiers(x = reactome_graphs, to = "symbol")
+reactome_graphs = lapply(reactome_graphs, pathwayGraph)
+reactome_graphs = lapply(reactome_graphs, igraph::graph_from_graphnel)
+
+glom_gene_xtalk_nw = lapply(X = glom_nws, function(g){
+  genelevel_xtalk_network(list_graphs = reactome_graphs, pathways = names(V(g)))
+})
+
+Cortex_gene_xtalk_nw = lapply(X = Cortex_nws, function(g){
+  genelevel_xtalk_network(list_graphs = reactome_graphs, pathways = names(V(g)))
+})
+
+SCN_gene_xtalk_nw = lapply(X = SCN_nws, function(g){
+  genelevel_xtalk_network(list_graphs = reactome_graphs, pathways = names(V(g)))
+})
+
+
