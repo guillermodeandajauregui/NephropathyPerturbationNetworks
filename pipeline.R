@@ -284,8 +284,6 @@ SCN_EvoComm_beta_delta$comms_gj
 #5) Gene-level crosstalk network > Fuzzy Matcher + Graphite + Igraph
 ###############################################################################
 
-#for each tissue, for each comparison (9 networks total)
-
 reactome_graphs = pathways(species = "mmusculus", "reactome")
 reactome_graphs = convertIdentifiers(x = reactome_graphs, to = "symbol")
 reactome_graphs = lapply(reactome_graphs, pathwayGraph)
@@ -303,4 +301,136 @@ SCN_gene_xtalk_nw = lapply(X = SCN_nws, function(g){
   genelevel_xtalk_network(list_graphs = reactome_graphs, pathways = names(V(g)))
 })
 
+###############################################################################
+#6) Driver identification > DeMAND
+###############################################################################
 
+#for each tissue, for each comparison (9 networks total)
+
+####################################
+############make "annotation" file
+####################################
+
+
+demand_anot = cbind(rownames(matriz), rownames(matriz))
+
+####################################
+############make demand lists
+####################################
+glom_demand =         lapply(glom_gene_xtalk_nw, function(x){
+                      demandClass(exp = matriz, 
+                                  anno = demand_anot, 
+                                  network = get.edgelist(x)
+                      )
+                    }
+                    )
+
+Cortex_demand =         lapply(Cortex_gene_xtalk_nw, function(x){
+  demandClass(exp = matriz, 
+              anno = demand_anot, 
+              network = get.edgelist(x)
+  )
+}
+)
+
+SCN_demand =         lapply(SCN_gene_xtalk_nw, function(x){
+  demandClass(exp = matriz, 
+              anno = demand_anot, 
+              network = get.edgelist(x)
+  )
+}
+)
+
+####################################
+############make lists of fg / bg
+####################################
+
+
+glom_contrasts = list(
+  alfa = list(fg = dbdb_Glom_num, bg = Cont_Glom_num),
+  beta = list(fg = dbdb_Pio_Glom_num, bg = dbdb_Glom_num),
+  gamma = list(fg = dbdb_Glom_num, bg = Cont_Glom_num)
+)
+
+Cortex_contrasts = list(
+  alfa = list(fg = dbdb_Cortex_num, bg = Cont_Cortex_num),
+  beta = list(fg = dbdb_Pio_Cortex_num, bg = dbdb_Cortex_num),
+  gamma = list(fg = dbdb_Cortex_num, bg = Cont_Cortex_num)
+)
+
+SCN_contrasts = list(
+  alfa = list(fg = dbdb_SCN_num, bg = Cont_SCN_num),
+  beta = list(fg = dbdb_Pio_SCN_num, bg = dbdb_SCN_num),
+  gamma = list(fg = dbdb_SCN_num, bg = Cont_SCN_num)
+)
+
+# glom_demand_run = mapply(FUN = function(demanda, contrastes){
+#   runDEMAND2(x = demanda, 
+#              fgIndex = contrastes[[1]], 
+#              bgIndex = contrastes[[2]], 
+#              method = "integers")
+#             },
+#   glom_demand,
+#   glom_contrasts
+#                 )
+
+#########################################
+############Run 10 DeMANDS per comparison
+#########################################
+
+
+glom_demand_bootstrap = mapply(FUN = function(demanda, contrastes){
+  x = 1:2
+  lapply(X = x, FUN = function(x){
+    runDEMAND2(x = demanda, 
+               fgIndex = contrastes[[1]], 
+               bgIndex = contrastes[[2]], 
+               method = "integers")
+  })
+},
+demanda = glom_demand,
+contrastes = glom_contrasts, 
+SIMPLIFY = FALSE
+)
+
+Cortex_demand_bootstrap = mapply(FUN = function(demanda, contrastes){
+  x = 1:2
+  lapply(X = x, FUN = function(x){
+    runDEMAND2(x = demanda, 
+               fgIndex = contrastes[[1]], 
+               bgIndex = contrastes[[2]], 
+               method = "integers")
+  })
+},
+demanda = Cortex_demand,
+contrastes = Cortex_contrasts, 
+SIMPLIFY = FALSE
+)
+
+SCN_demand_bootstrap = mapply(FUN = function(demanda, contrastes){
+  x = 1:2
+  lapply(X = x, FUN = function(x){
+    runDEMAND2(x = demanda, 
+               fgIndex = contrastes[[1]], 
+               bgIndex = contrastes[[2]], 
+               method = "integers")
+  })
+},
+demanda = SCN_demand,
+contrastes = SCN_contrasts, 
+SIMPLIFY = FALSE
+)
+
+save.image("~/X/PIO/workspace_phase6.RData")
+
+#########################################
+############To explore results
+#########################################
+
+Reduce(intersect, lapply(SCN_demand_bootstrap$beta, function(x){
+  x@moa$moaGene[1:50]
+}))
+
+#########################################
+############DONE!########################
+#########################################
